@@ -1,0 +1,56 @@
+services:
+  influx:
+    image: influxdb:latest
+    container_name: influx
+    restart: unless-stopped
+    ports:
+      - 8086:8086
+    volumes:
+      - ./data/influxdb-data:/var/lib/influxdb2:rw
+      - ./data/influxdb-config:/etc/influxdb2:rw
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=skar
+      - DOCKER_INFLUXDB_INIT_PASSWORD=skarsirius
+      - DOCKER_INFLUXDB_INIT_ORG=SKAR
+      - DOCKER_INFLUXDB_INIT_BUCKET=sirius
+      - DOCKER_INFLUXDB_INIT_RETENTION=7d
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=sirius-skar-sirius
+  telegraf:
+    image: telegraf:1.25-alpine
+    restart: unless-stopped
+    privileged: true # This is intentional
+    depends_on:
+      - influx
+    network_mode: host # This is intentional: required for wireless network telemetry
+    volumes:
+      - ./configuration/telegraf.conf:/etc/telegraf/telegraf.conf
+      - /sys:/host_sys:ro
+      - /:/hostfs:ro
+      - /run/udev:/run/udev:ro
+    environment:
+      - HOST_PROC=/hostfs/proc
+    env_file:
+      - ./env/telegraf.env
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    depends_on:
+      - influx
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_NAME=Main Org.
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=200ms
+      - GF_DATASOURCES_INFLUXDB_URL=http://influx:8086
+      - GF_DATASOURCES_INFLUXDB_INFLUXDB_VERSION=2
+      - GF_DATASOURCES_INFLUXDB_ORG=SKAR
+      - GF_DATASOURCES_INFLUXDB_BUCKET=sirius
+    env_file:
+      - ./env/grafana.env
+    ports:
+      - 3000:3000
+    volumes:
+      - ./data/grafana-data:/var/lib/grafana:rw
+    user: "0"
