@@ -15,7 +15,7 @@ TELEGRAF_TOKEN=$(docker exec influx influx auth create --org SKAR --description 
 GRAFANA_TOKEN=$(docker exec influx influx auth create --org SKAR --description "Grafana Token" --read-buckets --json | grep -o '"token": *"[^"]*"' | sed 's/"token": "//' | sed 's/"//g')
 
 # 4. Stop the InfluxDB container
-docker compose down influx
+docker compose stop influx
 
 # 5. Configure Telegraf
 echo "INFLUX_TOKEN=$TELEGRAF_TOKEN" > ./env/telegraf.env
