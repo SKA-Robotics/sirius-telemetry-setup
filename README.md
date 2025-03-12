@@ -11,14 +11,14 @@ sudo docker compose up --detach
 ```
 
 ## Setup Grafana
-1. Open the Granafa `http://influx:8086`
+1. Open the Granafa `http://localhost:3000`
 2. Go to `datasources`
 3. Click button `Add data source`
 4. Select `InfluxDB`
 5. In **Query Language**:
    - select query language to "Flux"
 6. In **HTTP** section:
-   - url: `http://localhost:3000`
+   - url: `http://influx:8086`
 7. In **InfluxDB Details** section:
    - organization: `SKAR`
    - read token from file `./env/grafana.env`
